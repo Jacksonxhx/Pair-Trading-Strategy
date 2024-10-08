@@ -1,0 +1,4 @@
+eventkit==1.0.3
+ib-insync==0.9.86
+nest-asyncio==1.6.0
+numpy==2.1.2
