@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 import os
 import json
 
+from Data.utils import load_data_from_json, save_data_to_json, adjust_to_trading_hours
+
 
 class DataLoader:
     """
@@ -14,7 +16,7 @@ class DataLoader:
     Now includes functionality to save data to and load data from local JSON files.
     """
 
-    def __init__(self, ib_port=7497, client_id=1, data_dir='data'):
+    def __init__(self, ib_port=7497, client_id=1, data_dir='Data/commodity_data/'):
         self.ib_port = ib_port
         self.client_id = client_id
         self.ib = None
@@ -38,52 +40,59 @@ class DataLoader:
         if self.ib and self.ib.isConnected():
             self.ib.disconnect()
 
-    def get_data_filename(self, symbol, start_date, end_date, bar_size):
+    def get_data_filename(self, symbol, bar_size):
         """
-        Generates a filename for saving the data based on symbol and date range.
+        Generates a filename for saving the data based on symbol and bar size.
         """
-        filename = f"{symbol}_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}_{bar_size.replace(' ', '')}.json"
+        filename = f"{symbol}_{bar_size.replace(' ', '')}.json"
         filepath = os.path.join(self.data_dir, filename)
         return filepath
 
-    def save_data_to_json(self, data, filepath):
+    def fetch_data_from_ib(self, symbol, start_date, end_date, bar_size='1 min', what_to_show='TRADES', use_rth=True):
         """
-        Saves the DataFrame to a JSON file.
+        Fetches new data from IB API (this is the original function provided by you).
         """
-        # Convert index to string to save as JSON
-        data_to_save = data.copy()
-        data_to_save.index = data_to_save.index.astype(str)
-        data_to_save.to_json(filepath, orient='index')
-        print(f"Data saved to {filepath}")
-
-    def load_data_from_json(self, filepath):
-        """
-        Loads data from a JSON file into a DataFrame.
-        """
-        if os.path.exists(filepath):
-            data = pd.read_json(filepath, orient='index')
-            data.index = pd.to_datetime(data.index)
-            print(f"Data loaded from {filepath}")
-            return data
-        else:
-            return None
+        # Call the original fetch_data method (from your provided code)
+        return self.fetch_new_data(symbol, start_date, end_date, bar_size, what_to_show, use_rth)
 
     def fetch_data(self, symbol, start_date, end_date, bar_size='1 min', what_to_show='TRADES', use_rth=True):
         """
         Fetches historical price data for the specified symbol and date range.
+        Uses local cache if available, fetches missing data from IB API if needed.
+        """
+        start_date, end_date = adjust_to_trading_hours(start_date, end_date)
+
+        filepath = self.get_data_filename(symbol, bar_size)
+        cached_data = load_data_from_json(filepath)
+
+        if cached_data is not None:
+            # Get cached data range
+            cached_start = cached_data.index.min()
+            cached_end = cached_data.index.max()
+
+            if cached_start <= start_date and cached_end >= end_date:
+                print(f"Returning cached data for {symbol} from {start_date} to {end_date}.")
+                return cached_data[(cached_data.index >= start_date) & (cached_data.index <= end_date)]
+
+        print(f"Fetching new data for {symbol} from {start_date} to {end_date}.")
+        new_data = self.fetch_data_from_ib(symbol, start_date, end_date, bar_size, what_to_show, use_rth)
+
+        if cached_data is not None:
+            cached_data = pd.concat([cached_data, new_data])
+            cached_data.sort_index(inplace=True)
+        else:
+            cached_data = new_data
+
+        save_data_to_json(cached_data, filepath)
+
+        return cached_data[(cached_data.index >= start_date) & (cached_data.index <= end_date)]
+
+    # The existing fetch_data method you provided
+    def fetch_new_data(self, symbol, start_date, end_date, bar_size='1 min', what_to_show='TRADES', use_rth=True):
+        """
+        Fetches historical price data for the specified symbol and date range.
         Now checks for local JSON file before fetching.
         """
-        # Generate filename
-        filepath = self.get_data_filename(symbol, start_date, end_date, bar_size)
-
-        # Try to load data from local JSON file
-        data = self.load_data_from_json(filepath)
-        if data is not None:
-            # Filter data within the start_date and end_date in case extra data is loaded
-            data = data[(data.index >= start_date) & (data.index <= end_date)]
-            return data
-
-        # If data not available locally, fetch from IB API
         try:
             self.connect()
 
@@ -95,11 +104,11 @@ class DataLoader:
             if bar_size == '1 min':
                 max_duration = timedelta(days=30)  # IB limit for 1-min bars
                 duration_str_template = '{} D'
-                sleep_interval = 10  # seconds
+                sleep_interval = 3  # seconds
             elif bar_size == '1 day':
                 max_duration = timedelta(days=365)  # IB limit for daily bars
                 duration_str_template = '{} D'
-                sleep_interval = 5  # seconds
+                sleep_interval = 3  # seconds
             else:
                 raise ValueError(f"Unsupported bar size: {bar_size}")
 
@@ -165,8 +174,6 @@ class DataLoader:
                 # Filter data within the start_date and end_date
                 data = data[(data.index >= start_date) & (data.index <= end_date)]
                 print(f"Total records fetched for {symbol}: {len(data)}")
-                # Save data to JSON file
-                self.save_data_to_json(data, filepath)
             else:
                 print(f"No data fetched for symbol {symbol}")
                 data = pd.DataFrame()

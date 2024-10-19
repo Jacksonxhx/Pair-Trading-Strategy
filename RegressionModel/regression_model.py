@@ -11,8 +11,7 @@ class RegressionModel:
         self.hedge_ratio = None
         self.alpha = None
 
-    def fit(self):
-        # TODO:(parameter optimization) 可以尝试更多不一样的regression模型找最佳
+    def linear_fit(self):
         y = self.training_data['GLD']
         X = self.training_data['GDX']
         X = sm.add_constant(X)
@@ -21,4 +20,8 @@ class RegressionModel:
         self.alpha = model.params['const']
         self.hedge_ratio = model.params['GDX']
         return self.hedge_ratio, self.alpha
+
+    # TODO:(parameter optimization) 可以尝试更多不一样的regression模型找最佳
+    def other_fit(self):
+        pass
 

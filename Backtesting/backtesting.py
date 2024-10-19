@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 class Backtester:
-    def __init__(self, data, signals, hedge_ratio, alpha, initial_capital=100000, transaction_cost=0.0005):
+    def __init__(self, data, signals, hedge_ratio, alpha, initial_capital, transaction_cost):
         self.data = data.copy()
         self.signals = signals.copy()
         self.hedge_ratio = hedge_ratio
