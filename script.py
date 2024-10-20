@@ -1,8 +1,9 @@
+import time
 import yaml
 import subprocess
 
 
-def modify_config_and_run_backtest():
+def modify_time_length_and_run_backtest():
     config_file = 'config.yaml'
 
     with open(config_file, 'r') as file:
@@ -18,6 +19,8 @@ def modify_config_and_run_backtest():
 
         subprocess.run(['python3', 'main.py'])
 
+        time.sleep(3)
+
 
 if __name__ == "__main__":
-    modify_config_and_run_backtest()
+    modify_time_length_and_run_backtest()

@@ -13,9 +13,9 @@ from Utils.main_utils import save_backtest_results, load_config
 
 def backtest(
         config,
+        result_dir: str,
         end_date: datetime = datetime.now() - timedelta(days=1)
     ):
-
     # Import configuration
     time_scale = config['data']['time_length_days']
     commodity1 = config['data']['commodities'][0]
@@ -34,7 +34,6 @@ def backtest(
 
     # Initialize DataLoader
     data_loader = DataLoader(ib_port=ib_port, client_id=client_id, data_dir='Data/commodity_data/')
-
     # Fetch data for GLD
     commodity_1_data = data_loader.fetch_data(
         symbol=commodity1,
@@ -44,7 +43,6 @@ def backtest(
         what_to_show='TRADES',
         use_rth=True
     )
-
     # Fetch data for GDX
     commodity_2_data = data_loader.fetch_data(
         symbol=commodity2,
@@ -74,17 +72,18 @@ def backtest(
     backtester = Backtester(testing_data, signals, hedge_ratio, alpha, initial_capital=initial_capital, transaction_cost=transaction_cost)
     results = backtester.run_backtest()
     performance = backtester.evaluate_performance()
+    backtester.data.to_csv(f'Output/csv/output_data_{time_scale}_{z_threshold}.csv', index=True)
 
     total_datapoints = len(training_data) + len(testing_data)
-    save_backtest_results(config, performance, total_datapoints)
+    save_backtest_results(config, performance, total_datapoints, result_dir)
 
     print("Backtest Performance:")
     for key, value in performance.items():
         print(f"{key}: {value}")
 
     # Plot returns and positions
-    backtester.plot_results()
-    backtester.plot_positions()
+    # backtester.plot_results()
+    # backtester.plot_positions()
 
 
 def paper_trade():
@@ -102,5 +101,5 @@ if __name__ == "__main__":
     config = load_config()
     # print(config)
 
-    backtest(config)
+    backtest(config=config, result_dir='Output/tt.json')
 

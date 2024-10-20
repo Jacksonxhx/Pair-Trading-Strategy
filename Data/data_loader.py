@@ -48,13 +48,6 @@ class DataLoader:
         filepath = os.path.join(self.data_dir, filename)
         return filepath
 
-    def fetch_data_from_ib(self, symbol, start_date, end_date, bar_size='1 min', what_to_show='TRADES', use_rth=True):
-        """
-        Fetches new data from IB API (this is the original function provided by you).
-        """
-        # Call the original fetch_data method (from your provided code)
-        return self.fetch_new_data(symbol, start_date, end_date, bar_size, what_to_show, use_rth)
-
     def fetch_data(self, symbol, start_date, end_date, bar_size='1 min', what_to_show='TRADES', use_rth=True):
         """
         Fetches historical price data for the specified symbol and date range.
@@ -75,10 +68,10 @@ class DataLoader:
                 return cached_data[(cached_data.index >= start_date) & (cached_data.index <= end_date)]
 
         print(f"Fetching new data for {symbol} from {start_date} to {end_date}.")
-        new_data = self.fetch_data_from_ib(symbol, start_date, end_date, bar_size, what_to_show, use_rth)
+        new_data = self.fetch_new_data(symbol, start_date, end_date, bar_size, what_to_show, use_rth)
 
         if cached_data is not None:
-            cached_data = pd.concat([cached_data, new_data])
+            cached_data.update(new_data)
             cached_data.sort_index(inplace=True)
         else:
             cached_data = new_data

@@ -42,7 +42,7 @@ def is_duplicate(entry, results):
     return False
 
 
-def save_backtest_results(config, performance, total_datapoints, result_dir='backtest_results.json'):
+def save_backtest_results(config, performance, total_datapoints, result_dir):
     """
     Save the backtest results in JSON format for future reference.
     """
