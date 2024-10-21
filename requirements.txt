@@ -10,6 +10,7 @@ numpy==2.1.2
 packaging==24.1
 pandas==2.2.3
 patsy==0.5.6
+pd==0.0.4
 pillow==10.4.0
 pyparsing==3.1.4
 python-dateutil==2.9.0.post0

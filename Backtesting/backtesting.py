@@ -59,7 +59,6 @@ class Backtester:
         current_num_shares_GDX = 0.0
 
         for i in range(len(self.data)):
-            print(f"\n--- Iteration {i} ---")
             # Get the index (date) and current row
             index = self.data.index[i]
             row = self.data.iloc[i]
@@ -85,7 +84,8 @@ class Backtester:
                 current_cash += proceeds_GLD + proceeds_GDX
 
                 # Calculate transaction costs for selling
-                transaction_costs = (abs(proceeds_GLD) + abs(proceeds_GDX)) * self.transaction_cost
+                # transaction_costs = (abs(proceeds_GLD) + abs(proceeds_GDX)) * self.transaction_cost
+                transaction_costs = (abs(current_num_shares_GLD) + abs(current_num_shares_GDX)) * self.transaction_cost
 
                 current_cash -= transaction_costs
 
@@ -116,7 +116,8 @@ class Backtester:
                 cost_GDX = num_shares_GDX * price_GDX
 
                 # Calculate transaction costs for buying
-                transaction_costs = (abs(cost_GLD) + abs(cost_GDX)) * self.transaction_cost
+                # transaction_costs = (abs(cost_GLD) + abs(cost_GDX)) * self.transaction_cost
+                transaction_costs = (abs(num_shares_GLD) + abs(num_shares_GDX)) * self.transaction_cost
 
                 current_cash -= (cost_GLD + cost_GDX + transaction_costs)
 
@@ -126,15 +127,12 @@ class Backtester:
                 # Update current positions
                 current_num_shares_GLD = num_shares_GLD
                 current_num_shares_GDX = num_shares_GDX
-            else:
-                print("No position change. Holding current positions.")
 
             # Update holdings value
             holdings = current_num_shares_GLD * price_GLD + current_num_shares_GDX * price_GDX
 
             # Update total asset value
             total_asset = current_cash + holdings
-            print(f"Total Asset Value: {total_asset}")
 
             # Calculate PnL
             if i > 0:
@@ -146,7 +144,8 @@ class Backtester:
             # Update the DataFrame
             self.data.at[index, 'num_shares_GLD'] = current_num_shares_GLD
             self.data.at[index, 'num_shares_GDX'] = current_num_shares_GDX
-            self.data.at[index, 'cash'] = current_cash
+            self.data['cash'] = self.data['cash'].astype(float)
+            self.data.at[index, 'cash'] = float(current_cash)
             self.data.at[index, 'holdings'] = holdings
             self.data.at[index, 'total_asset'] = total_asset
             self.data.at[index, 'pnl'] = pnl
@@ -162,13 +161,13 @@ class Backtester:
 
         return self.results
 
-    def evaluate_performance(self):
+    def evaluate_minute_performance(self):
         total_minutes = len(self.data)
 
         # Risk-free rate settings
-        risk_free_rate_annual = 0.03
-        minutes_per_day = 390
-        trading_days_per_year = 252
+        risk_free_rate_annual = 0.02
+        minutes_per_day = 1440
+        trading_days_per_year = 365
         minutes_per_year = minutes_per_day * trading_days_per_year
         risk_free_rate_per_minute = risk_free_rate_annual / minutes_per_year
 
@@ -178,18 +177,50 @@ class Backtester:
         total_return_pct = (final_portfolio_value / self.initial_capital - 1) * 100
 
         # Annualized return
-        cumulative_return = final_portfolio_value / self.initial_capital
-        annualized_return = (cumulative_return ** (minutes_per_year / total_minutes) - 1) * 100
+        annualized_return = ((final_portfolio_value / self.initial_capital) ** (
+                    252 * 390 / total_minutes) - 1) * 100
 
         # Per-minute returns
-        minute_returns = self.returns  # Assuming self.returns is per-minute return calculated in run_backtest
+        minute_returns = self.returns
 
         # Annualized volatility
-        annualized_volatility = minute_returns.std() * np.sqrt(minutes_per_year) * 100  # Convert to percentage
+        annualized_volatility = minute_returns.std() * np.sqrt(252 * 390) * 100
 
         # Sharpe Ratio
-        excess_returns = minute_returns - risk_free_rate_per_minute
-        sharpe_ratio = (excess_returns.mean() / minute_returns.std()) * np.sqrt(minutes_per_year)
+        sharpe_ratio = (minute_returns.mean() - risk_free_rate_per_minute) / minute_returns.std()
+
+        return {
+            'Total Return ($)': total_return,
+            'Total Return (%)': total_return_pct,
+            'Annualized Return (%)': annualized_return,
+            'Annualized Volatility (%)': annualized_volatility,
+            'Sharpe Ratio': sharpe_ratio
+        }
+
+    def evaluate_day_performance(self):
+        total_day = len(self.data)
+
+        # Risk-free rate settings
+        risk_free_rate_annual = 0.02
+        risk_free_rate_per_day = risk_free_rate_annual / 365
+
+        # Total return calculations
+        final_portfolio_value = self.results.iloc[-1]
+        total_return = final_portfolio_value - self.initial_capital
+        total_return_pct = (final_portfolio_value / self.initial_capital - 1) * 100
+
+        # Annualized return
+        annualized_return = ((final_portfolio_value / self.initial_capital) ** (
+                365 / total_day) - 1) * 100
+
+        # Per-minute returns
+        day_returns = self.returns
+
+        # Annualized volatility
+        annualized_volatility = day_returns.std() * np.sqrt(365) * 100
+
+        # Sharpe Ratio
+        sharpe_ratio = (day_returns.mean() - risk_free_rate_per_day) / day_returns.std()
 
         return {
             'Total Return ($)': total_return,

@@ -1,0 +1,62 @@
+[
+    {
+        "Time Length (days)": 30,
+        "Total Data Points": 8580,
+        "Training Ratio (%)": 0.9,
+        "Testing Ratio (%)": 0.1,
+        "Model": "Linear Regression",
+        "Window": 10,
+        "Threshold": 1,
+        "Sharpe Ratio": -0.05671387515038114,
+        "Total Return ($)": -454.5979286933725,
+        "Annual Return (%)": -40.66129870266959
+    },
+    {
+        "Time Length (days)": 30,
+        "Total Data Points": 8580,
+        "Training Ratio (%)": 0.9,
+        "Testing Ratio (%)": 0.1,
+        "Model": "Linear Regression",
+        "Window": 10,
+        "Threshold": 1.5,
+        "Sharpe Ratio": -0.019082970403583265,
+        "Total Return ($)": -120.12538033856254,
+        "Annual Return (%)": -12.862327394458983
+    },
+    {
+        "Time Length (days)": 30,
+        "Total Data Points": 8580,
+        "Training Ratio (%)": 0.9,
+        "Testing Ratio (%)": 0.1,
+        "Model": "Linear Regression",
+        "Window": 10,
+        "Threshold": 2,
+        "Sharpe Ratio": 0.018472974835970164,
+        "Total Return ($)": 95.43385306153505,
+        "Annual Return (%)": 11.545569012642476
+    },
+    {
+        "Time Length (days)": 30,
+        "Total Data Points": 8580,
+        "Training Ratio (%)": 0.9,
+        "Testing Ratio (%)": 0.1,
+        "Model": "Linear Regression",
+        "Window": 10,
+        "Threshold": 2.5,
+        "Sharpe Ratio": 0.045797169172936414,
+        "Total Return ($)": 207.1262744639971,
+        "Annual Return (%)": 26.745171859076898
+    },
+    {
+        "Time Length (days)": 30,
+        "Total Data Points": 8580,
+        "Training Ratio (%)": 0.9,
+        "Testing Ratio (%)": 0.1,
+        "Model": "Linear Regression",
+        "Window": 10,
+        "Threshold": 3,
+        "Sharpe Ratio": -Infinity,
+        "Total Return ($)": 0.0,
+        "Annual Return (%)": 0.0
+    }
+]

@@ -36,6 +36,7 @@ def is_duplicate(entry, results):
             result['Window'] == entry['Window'] and
             result['Threshold'] == entry['Threshold'] and
             result['Sharpe Ratio'] == entry['Sharpe Ratio'] and
+            result['Total Return ($)'] == entry['Total Return ($)'] and
             result['Annual Return (%)'] == entry['Annual Return (%)']
         ):
             return True
@@ -56,7 +57,8 @@ def save_backtest_results(config, performance, total_datapoints, result_dir):
     window = config['strategy']['window']
     threshold = config['strategy']['z_threshold']
     sharp_ratio = performance.get('Sharpe Ratio', None)
-    annual_r = performance.get('Annualized Return (%)', None)
+    total_r = performance.get('Total Return ($)', None)
+    annual_rr = performance.get('Annualized Return (%)', None)
 
     # Prepare a dictionary with the relevant information
     backtest_entry = {
@@ -68,7 +70,8 @@ def save_backtest_results(config, performance, total_datapoints, result_dir):
         "Window": window,
         "Threshold": threshold,
         "Sharpe Ratio": sharp_ratio,
-        "Annual Return (%)": annual_r
+        "Total Return ($)": total_r,
+        "Annual Return (%)": annual_rr,
     }
 
     if os.path.exists(result_dir):

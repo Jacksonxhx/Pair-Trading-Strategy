@@ -1,3 +1,5 @@
+import pprint
+
 from ib_insync import *
 import pandas as pd
 import numpy as np
@@ -71,7 +73,8 @@ class DataLoader:
         new_data = self.fetch_new_data(symbol, start_date, end_date, bar_size, what_to_show, use_rth)
 
         if cached_data is not None:
-            cached_data.update(new_data)
+            cached_data = pd.concat([cached_data, new_data])
+            cached_data = cached_data[~cached_data.index.duplicated(keep='last')]
             cached_data.sort_index(inplace=True)
         else:
             cached_data = new_data

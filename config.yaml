@@ -1,6 +1,6 @@
 capital:
   initial_capital: 100000
-  transaction_cost: 0
+  transaction_cost: 0.0035
 credentials:
   client_id: 1
   ib_port: 7497
@@ -8,11 +8,11 @@ data:
   commodities:
   - GLD
   - GDX
-  time_length_days: 180
+  time_length_days: 30
   time_scale: 1 min
-  training_threshold: 3
+  training_threshold: 10
 model:
   fitting_method: OLS
 strategy:
-  window: 100
-  z_threshold: 1
+  window: 10
+  z_threshold: 2.5

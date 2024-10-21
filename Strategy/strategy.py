@@ -34,10 +34,4 @@ class PairTradingStrategy:
         self.signals.loc[self.data['z_score'] > self.z_threshold, 'positions'] = -1
         self.signals.loc[self.data['z_score'] < -self.z_threshold, 'positions'] = 1
 
-        # Forward-fill positions to maintain positions until exit signal
-        self.signals['positions'] = self.signals['positions'].ffill().fillna(0)
-
-        # Calculate position changes (trade signals)
-        self.signals['positions'] = self.signals['positions'].diff().fillna(0)
-
         return self.signals

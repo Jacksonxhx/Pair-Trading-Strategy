@@ -1,4 +1,5 @@
 import pprint
+import sys
 from ib_insync import *
 import pandas as pd
 from datetime import datetime, timedelta
@@ -14,7 +15,8 @@ from Utils.main_utils import save_backtest_results, load_config
 def backtest(
         config,
         result_dir: str,
-        end_date: datetime = datetime.now() - timedelta(days=1)
+        json_dir: str,
+        end_date: datetime = datetime.now() - timedelta(days=5)
     ):
     # Import configuration
     time_scale = config['data']['time_length_days']
@@ -28,6 +30,7 @@ def backtest(
     ib_port = config['credentials']['ib_port']
     client_id = config['credentials']['client_id']
     training_threshold = config['data']['training_threshold']
+    time = config['data']['time_scale']
 
     # Define date range
     start_date = end_date - timedelta(days=time_scale)
@@ -70,18 +73,20 @@ def backtest(
 
     # Backtesting
     backtester = Backtester(testing_data, signals, hedge_ratio, alpha, initial_capital=initial_capital, transaction_cost=transaction_cost)
-    results = backtester.run_backtest()
-    performance = backtester.evaluate_performance()
-    backtester.data.to_csv(f'Output/csv/output_data_{time_scale}_{z_threshold}.csv', index=True)
-
-    total_datapoints = len(training_data) + len(testing_data)
-    save_backtest_results(config, performance, total_datapoints, result_dir)
+    backtester.run_backtest()
+    if time == '1 min':
+        performance = backtester.evaluate_minute_performance()
+    elif time == '1 day':
+        performance = backtester.evaluate_day_performance()
 
     print("Backtest Performance:")
     for key, value in performance.items():
         print(f"{key}: {value}")
 
-    # Plot returns and positions
+    # Plot returns and positions and save
+    # backtester.data.to_csv(result_dir, index=True)
+    total_datapoints = len(training_data) + len(testing_data)
+    save_backtest_results(config, performance, total_datapoints, json_dir)
     # backtester.plot_results()
     # backtester.plot_positions()
 
@@ -97,9 +102,11 @@ def paper_trade():
     pass
 
 
+def live_trade():
+    pass
+
+
 if __name__ == "__main__":
     config = load_config()
-    # print(config)
-
-    backtest(config=config, result_dir='Output/tt.json')
-
+    # backtest(config=config, result_dir='Output/tt.json', json_dir='Output/tt.json')
+    backtest(config=config, result_dir=sys.argv[1], json_dir=sys.argv[2])
